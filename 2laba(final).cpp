@@ -3,15 +3,15 @@
 #include <string>
 using namespace std;
 enum Color { red, black };
+struct list_node {
+        int data;
+        list_node* next = nullptr;
+    };
 class dyn_list {
 public:
-    struct node {
-        int data;
-        node* next = nullptr;
-    };
-    node* head = nullptr;
+    list_node* head = nullptr;
     void init(int value) {
-        head = new node;
+        head = new list_node;
         head->data = value;
         head->next = head;
     }
@@ -20,39 +20,64 @@ public:
             init(value);
         }
         else if (value >= head->data) {
-            node* current = head;
+            list_node* current = head;
             while (current->next != head) {
                 current = current->next;
             }
-            node* p = new node;
+            list_node* p = new list_node;
             p->data = value;
             p->next = head;
             current->next = p;
             head = p;
         }
         else {
-            node* current = head;
+            list_node* current = head;
             while (value < current->next->data and current->next != head) {
                 current = current->next;
             }
-            node* h = new node;
+            list_node* h = new list_node;
             h->data = value;
             h->next = current->next;
             current->next = h;
         }
     }
-    void print_list(node*& head) {
+    void print_list(){
         if (head == nullptr) {
             cout << "There are no elements in list \n";
         }
         else {
-            node* p = head;
+            list_node* p = head;
             do {
                 cout << p->data << " ";
                 p = p->next;
             } while (p != head);
             cout << "\n";
         }
+    }
+    void del_last(){
+        if (head == nullptr){
+            cout << "There are no elements in list \n";
+            return;
+        }
+        if (head->next == head){
+            delete head;
+            head = nullptr;
+            return;
+        }
+        list_node* p = head;
+        list_node* q = head->next;
+        if (q->next == head){
+            delete q;
+            q = nullptr;
+            head->next = nullptr;
+            return;
+        }
+        while(q->next != head){
+            p = q;
+            q = q->next;
+        }
+        delete q;
+        p->next = head;
     }
 };
 struct Data {
@@ -112,16 +137,19 @@ struct Node {
 };
 class RBtree {
 public:
-
     Node* root;
     bool fl1 = false; // флаг для проверки висячего указателя
     void init() {
+        if(fl1){
+            cout << "There is a tree already\n";
+            return;
+        }
         root = nullptr;
         fl1 = true;
     }
     void leftRotation(Node*& node) {
         if (!fl1) {
-            cout << "There is no tree";
+            cout << "There is no tree\n";
             return;
         }
         Node* child = node->right;
@@ -144,7 +172,7 @@ public:
     }
     void rightRotation(Node*& node) {
         if (!fl1) {
-            cout << "There is no tree";
+            cout << "There is no tree\n";
             return;
         }
         Node* child = node->left;
@@ -167,14 +195,13 @@ public:
     }
     void addBalance(Node*& node) {
         if (!fl1) {
-            cout << "There is no tree";
+            cout << "There is no tree\n";
             return;
         }
         Node* parent = nullptr;
         Node* grand = nullptr;
         Node* uncle = nullptr;
         while ((node != root) and (node->color == red) and (node->parent->color == red)) {
-            // cout<<node->color << " "<< node->parent->color;
             parent = node->parent;
             grand = parent->parent;
             if (parent == grand->left) {
@@ -197,8 +224,7 @@ public:
                     parent->color = grandColor;
                     node = parent;
                 }
-            }
-            else {
+            } else {
                 //cout << "right";
                 uncle = grand->left;
                 if (uncle != nullptr and uncle->color == red) {
@@ -264,7 +290,10 @@ public:
         addBalance(newElem);
     }
     void post_order(Node*& root) {
-        if (root == nullptr) return;
+        if (root == nullptr){ 
+            cout <<"There is no tree \n";    
+            return;
+        }
         post_order(root->left);
         post_order(root->right);
         cout << ((root->color == red) ? "\x1b[31m" : "") << root->data << ((root->color == red) ? "\x1b[0m" : "") << "\n";
@@ -275,7 +304,6 @@ public:
             return nullptr;
         }
         Node* cur = root;
-        bool fl = false; // флаг для проверки наличия элемента
         while (cur != nullptr) {
             if (data == cur->data) {
                 break;
@@ -300,11 +328,16 @@ public:
     }
     void remove(Data data) {
         if (!fl1) {
-            cout << "There is no tree";
+            cout << "There is no tree\n";
             return;
         }
         Node* cur = search(data);
         if (cur == nullptr) {
+            cout << "There is no such element\n";
+            return;
+        }
+        cur->data.line_num.del_last();
+        if (cur->data.line_num.head != nullptr){
             return;
         }
         Node* del_node = cur; // удаляемая нода 
@@ -343,7 +376,6 @@ public:
             else {
                 cur->parent->right = replace_node;
             }
-
             delete cur;
         }
         else if (cur->right == nullptr) {
@@ -406,14 +438,19 @@ public:
             }
             delete cur;
         }
-       // cout << "UDALIL USPESHNO";
         if (delColor == black) {
             removeBalance(replace_node);
         }
-        // cout<<"Remove complete \n";
     }
     void removeBalance(Node* replace_node) {
-        return;
+        if (!fl1) {
+            cout << "There is no tree\n";
+            return;
+        }
+         if(replace_node == nullptr){
+            return;
+        }
+        cout << replace_node->data <<"\n";
         while (replace_node != root and ((replace_node == nullptr) or replace_node->color == black)) { //(зафикшено) крашится когда сюда нулл птр попадает надо сначала сбалансировать потом удалить ноду
             if (replace_node == replace_node->parent->left) {
                 Node* bro = replace_node->parent->right; // брат замещающей ноды
@@ -481,9 +518,13 @@ public:
         if (replace_node != nullptr) {
             replace_node->color = black;
         }
-        cout << "Balance complete";
+//        cout << "Balance complete\n";
     }
     void printTree(Node* root, int h) {
+        if (!fl1) {
+            cout << "There is no tree\n";
+            return;
+        }
         if (root != nullptr) {
             printTree(root->left, h + 4);
             for (int i = 1; i <= h; ++i) {
@@ -498,7 +539,8 @@ public:
             clear(root->left);
             clear(root->right);
             delete root;
-        }
+            fl1 = false;
+        } 
     }
     void result_record(Node* root, ofstream& fout){
         if (root==nullptr) return;
@@ -534,14 +576,6 @@ int main() {
     }
     in.close();
     tree.printTree(tree.root, 5);
-    cout << "------------------------------------" << "\n";
-    Data node1 = { "m","h","i" };
-    tree.remove(node1);
-    tree.printTree(tree.root, 5);
-    //cout << "------------------------------------" <<"\n"; 
-    //tree.post_order(tree.root);
-    ofstream fout("result.txt");
-    tree.result_record(tree.root, fout);
+    cout << "------------------------------------";
     cout << "\n" << "Compiled";
-
 }
